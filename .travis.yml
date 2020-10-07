@@ -4,6 +4,7 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt
+  - python -c "import stanfordnlp; stanfordnlp.download('en')"
   
 script:
   - echo "skipping tests"
