@@ -14,6 +14,7 @@ class BertBaseline(torch.nn.Module):
     BertOutput1 = self.bertBase(input_sentence,attention_mask=sentence_mask)[1]
     BertOutput2 = self.bertBase(current_VP,attention_mask=VP_mask)[1]
 
+    # Concat BERT outputs for sentence and VP
     concat = torch.cat((BertOutput1,BertOutput2),dim=1)
 
     y = self.LinearLayer1(concat)

@@ -13,7 +13,7 @@ from sklearn.metrics import precision_recall_fscore_support
 import random
 from nltk.stem.snowball import SnowballStemmer
 import sys
-from Extract_VerbPhrases import get_tasks_for_VP,extract_VP,preprocess
+from Code.Extract_VerbPhrases import get_tasks_for_VP,extract_VP,preprocess
 
 def dfs(graph,node,arr,modify_dependencies = False,nsubj='',dependencies={}):
     if modify_dependencies:

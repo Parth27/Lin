@@ -40,8 +40,8 @@ def preprocess(data,data_path):
         sent  = data.iloc[i]['Sentence']
         data.at[i,'Sentence'] = ' '.join(re.sub(r'"','',re.sub(r"['#@_%*()</>^&=]*[\-]*",'',sent)).split())
 
-    for key in ('email','Email'):
-        data['Sentence'] = data['Sentence'].str.replace(key,contractions[key])
+    for key in ('email','Email','EMAIL'):
+        data['Sentence'] = data['Sentence'].str.replace(key,contractions['email'])
 
     return data
 
