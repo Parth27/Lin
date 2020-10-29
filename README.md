@@ -5,6 +5,14 @@ Unsupervised task extraction from textual communication, presented at COLING 202
 * Download and extract this repo
 * Run "pip install -r requirements.txt" for installing all dependencies
 
+## How to run Lin
+
+### Running Lin on given datasets
+
+### Running Lin on your dataset
+
+## Evaluating Lin
+
 ## Training baseline models
 For training baseline models use command  "python train.py --model=MODEL".
 MODEL can be one of bert/fasttext/svm. The selected model is then trained on email dataset.
