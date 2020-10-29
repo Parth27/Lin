@@ -19,6 +19,8 @@ from sklearn.metrics import accuracy_score
 from collections import Counter
 from nltk.corpus import stopwords
 import sys
+import os
+import random
 
 #Preprocess data
 def preprocess(data,data_path):
@@ -137,6 +139,49 @@ def get_tasks_for_VP(VP_data,data):
         context.extend([i for x in VP_data[i]])
 
     return tasks,new_VP,context
+
+#Function to call extact VP if VP files not present
+def processData(data,dataset='email'):
+    if os.path.exists('Data/PickleFiles/VP_data_'+dataset+'.pickle'):
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", category=PendingDeprecationWarning)
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            warnings.filterwarnings("ignore", category=UserWarning)
+            VP_data = extract_VP(data)
+
+        tasks, VP_data, context = get_tasks_for_VP(VP_data, data)
+        with open('Data/PickleFiles/tasks_'+dataset+'.pickle', 'wb') as f:
+            pickle.dump(tasks, f)
+
+        with open('VP_data_'+dataset+'.pickle', 'wb') as f:
+            pickle.dump(VP_data, f)
+
+        with open('context_'+dataset+'.pickle', 'wb') as f:
+            pickle.dump(context, f)
+    else:
+        with open('Data/PickleFiles/tasks_'+dataset+'.pickle', 'rb') as f:
+            tasks = pickle.load(f)
+
+        with open('VP_data_'+dataset+'.pickle', 'rb') as f:
+            VP_data = pickle.load(f)
+
+        with open('context_'+dataset+'.pickle', 'rb') as f:
+            context = pickle.load(f)
+
+    shuffled_idx = [x for x in range(len(VP_data))]
+    random.shuffle(shuffled_idx)
+
+    VP_data = [VP_data[x] for x in shuffled_idx]
+    tasks = [tasks[x] for x in shuffled_idx]
+    context = [str(data.iloc[context[x]]['Sentence'])
+                for x in shuffled_idx]
+    return VP_data, tasks, context
+
+def create_split(train_idx, test_idx, data):
+    train_data = [data[x] for x in train_idx]
+    test_data = [data[x] for x in test_idx]
+    return train_data, test_data
 
 if __name__=='__main__':
     dataset = sys.argv[1]

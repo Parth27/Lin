@@ -6,7 +6,7 @@ import sys
 import random
 import re
 from transformers import BertTokenizer
-    
+
 
 def prepare_data(tokenizer,X_train,X_test,max_seq_length=None):
   X_tokens = []

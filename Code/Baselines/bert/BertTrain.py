@@ -1,10 +1,8 @@
 import datetime
 import math
 import os
-import pickle
 import random
 import time
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -15,11 +13,12 @@ from transformers import BertConfig, BertModel, BertTokenizer
 
 from Code.Baselines.bert.Bert import BertBaseline
 from Code.Baselines.bert.Bert_Preprocessing import prepare_data
-from Code.Extract_VerbPhrases import bfs, extract_VP, get_tasks_for_VP
+from Code.DataProcessing import processData,create_split
 
 
-class BertTrain:
-    def __init__(self):
+class BertTrainer:
+    def __init__(self,dataset='email'):
+        self.dataset = dataset
         if torch.cuda.is_available():
             # Tell PyTorch to use the GPU.
             self.device = torch.device("cuda")
@@ -38,18 +37,22 @@ class BertTrain:
 
     def __call__(self, num_epochs=20, batch_size=64, lr=0.00001, cross_val=True):
         self.loadDataset()
-        VP_data, tasks, context = self.processData()
+        VP_data, tasks, context = processData(self.data,self.dataset)
         kf = KFold(n_splits=5, shuffle=False)
         print('Started Training...')
         f1_scores = []
         accuracies = []
         precisions = []
         recalls = []
+        best_model = None
+        best_f1 = 0
+        fold_num = 1
         for train_idx, test_idx in kf.split(VP_data, tasks):
-            train_VP, test_VP = self.create_split(train_idx, test_idx, VP_data)
-            train_context, test_context = self.create_split(
+            print("========= Fold Number: {} ==========".format(fold_num))
+            train_VP, test_VP = create_split(train_idx, test_idx, VP_data)
+            train_context, test_context = create_split(
                 train_idx, test_idx, context)
-            train_tasks, test_tasks = self.create_split(
+            train_tasks, test_tasks = create_split(
                 train_idx, test_idx, tasks)
             X_train_ids, X_train_masks, X_train_segments, X_test_ids, X_test_masks, X_test_segments = prepare_data(
                 train_VP, test_VP, max_seq_length=50)
@@ -127,59 +130,22 @@ class BertTrain:
 
             accuracy, f1, prec, rec = self.evaluate(
                 X_test_ids, X_test_masks, test_sent_ids, test_sent_masks, test_tasks, y_test, batch_size)
+            #Save best model
+            if f1>best_f1:
+                best_f1 = f1
+                best_model = self.model
+
             f1_scores.append(f1)
             accuracies.append(accuracy)
             precisions.append(prec)
             recalls.append(rec)
-        return self.model, f1_scores, accuracies, precisions, recalls
+            fold_num += 1
+        return best_model, f1_scores, accuracies, precisions, recalls
 
-    def loadDataset(self, dataset='email'):
-        self.data = pd.read_excel('Data/Preprocessed_Dataset_Emails.xlsx')
+    def loadDataset(self):
+        self.data = pd.read_excel('Data/Preprocessed_Dataset_'+self.dataset+'.xlsx')
         self.tokenizer = BertTokenizer.from_pretrained(
             'bert-base-uncased', do_lower_case=True)
-
-    def processData(self):
-        files = os.listdir('Data/pickleFiles/')
-        if 'VP_data_email.pickle' not in files:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", category=PendingDeprecationWarning)
-                warnings.filterwarnings("ignore", category=DeprecationWarning)
-                warnings.filterwarnings("ignore", category=UserWarning)
-                VP_data = extract_VP(self.data)
-
-            tasks, VP_data, context = get_tasks_for_VP(VP_data, self.data)
-            with open('Data/pickleFiles/tasks_email.pickle', 'wb') as f:
-                pickle.dump(tasks, f)
-
-            with open('VP_data_email.pickle', 'wb') as f:
-                pickle.dump(VP_data, f)
-
-            with open('context_email.pickle', 'wb') as f:
-                pickle.dump(context, f)
-        else:
-            with open('Data/pickleFiles/tasks_email.pickle', 'rb') as f:
-                tasks = pickle.load(f)
-
-            with open('VP_data_email.pickle', 'rb') as f:
-                VP_data = pickle.load(f)
-
-            with open('context_email.pickle', 'rb') as f:
-                context = pickle.load(f)
-
-        shuffled_idx = [x for x in range(len(VP_data))]
-        random.shuffle(shuffled_idx)
-
-        VP_data = [VP_data[x] for x in shuffled_idx]
-        tasks = [tasks[x] for x in shuffled_idx]
-        context = [str(self.data.iloc[context[x]]['Sentence'])
-                   for x in shuffled_idx]
-        return VP_data, tasks, context
-
-    def create_split(self, train_idx, test_idx, data):
-        train_data = [data[x] for x in train_idx]
-        test_data = [data[x] for x in test_idx]
-        return train_data, test_data
 
     def evaluate(self, X_test_ids, X_test_masks, test_sent_ids, test_sent_masks, test_tasks, y_test, batch_size=64):
         print("Running Evaluation...")
@@ -212,7 +178,7 @@ class BertTrain:
             test_tasks, all_predictions, average='binary')
         accuracy = accuracy_score(test_tasks, all_predictions)
         # Report the final results
-        print("  Accuracy: {0:.2f}".format(0))
+        print("  Accuracy: {0:.2f}".format(accuracy))
         print("  Precision: {0:.2f}".format(prec))
         print("  Recall: {0:.2f}".format(rec))
         print("  F1 score: {0:.2f}".format(f1))
