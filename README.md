@@ -7,4 +7,5 @@ Unsupervised task extraction from textual communication, presented at COLING 202
 
 ## Training baseline models
 For training baseline models use command  "python train.py --model=MODEL"
+
 MODEL can be one of bert/fasttext/svm. The selected model is then trained on email dataset.
