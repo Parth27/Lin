@@ -1,54 +1,46 @@
-import pandas as pd
-import numpy as np
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import PorterStemmer
-import re
-import stanfordnlp
-from nltk.corpus import verbnet
-from nltk.corpus import wordnet as wn
-import warnings
-from sklearn.feature_selection import chi2,SelectKBest
-import tensorflow as tf
-import tensorflow_hub as hub
-import pickle
-from sklearn.svm import SVC
-import warnings
-from sklearn.metrics import accuracy_score
-from collections import Counter
-from nltk.corpus import stopwords
-import sys
 import os
+import pickle
 import random
+import re
+import warnings
 
-#Preprocess data
-def preprocess(data,data_path):
+import numpy as np
+import pandas as pd
+import stanfordnlp
+
+
+# Preprocess data
+def preprocess(data):
     contractions = {}
     data['Sentence'] = data['Sentence'].astype(str)
-    #List of contractions from Wikipedia
-    with open(data_path+'Contractions','r') as f:
-        contractions = dict([x.split(':') for x in f.read().strip().split('\n')])
-        
+    # List of contractions from Wikipedia
+    with open('Config/Contractions', 'r') as f:
+        contractions = dict([x.split(':')
+                             for x in f.read().strip().split('\n')])
+
     keys = contractions.keys()
     for key in list(keys):
         contractions[key] = contractions[key].strip()
-        contractions[key[0].upper()+key[1:]] = contractions[key][0].upper()+contractions[key][1:]
+        contractions[key[0].upper()+key[1:]
+                     ] = contractions[key][0].upper()+contractions[key][1:]
 
     for key in contractions:
-        data['Sentence'] = data['Sentence'].str.replace(key,contractions[key])
+        data['Sentence'] = data['Sentence'].str.replace(key, contractions[key])
 
     for i in range(data.shape[0]):
-        sent  = data.iloc[i]['Sentence']
-        data.at[i,'Sentence'] = ' '.join(re.sub(r'"','',re.sub(r"['#@_%*()</>^&=]*[\-]*",'',sent)).split())
+        sent = data.iloc[i]['Sentence']
+        data.at[i, 'Sentence'] = ' '.join(
+            re.sub(r'"', '', re.sub(r"['#@_%*()</>^&=]*[\-]*", '', sent)).split())
 
-    for key in ('email','Email','EMAIL'):
-        data['Sentence'] = data['Sentence'].str.replace(key,contractions['email'])
+    for key in ('email', 'Email', 'EMAIL'):
+        data['Sentence'] = data['Sentence'].str.replace(
+            key, contractions['email'])
 
     return data
 
-#Function to traverse dependency parse in BFS manner
-def bfs(graph,rootNode):    
+
+def bfs(graph, rootNode):
+    # Function to traverse dependency parse in BFS manner
     ans = []
     queue = [rootNode]
     while(queue):
@@ -56,11 +48,12 @@ def bfs(graph,rootNode):
         ans.append(node)
         if node in graph:
             queue.extend(graph[node])
-        
+
     return ans
 
-#Function to extract VPs from dataset
+
 def extract_VP(data):
+    # Function to extract VPs from dataset
     nlp = stanfordnlp.Pipeline(use_gpu=False)
     VP_data = []
     for i in range(data.shape[0]):
@@ -75,53 +68,59 @@ def extract_VP(data):
             reverse_graph = {}
             dependencies = {}
             for parse in sentence.words:
-                reverse_graph.setdefault(int(parse.governor),[])
+                reverse_graph.setdefault(int(parse.governor), [])
                 reverse_graph[int(parse.governor)].append(int(parse.index))
-                reverse_graph.setdefault(int(parse.index),[])
-                #Find root node
+                reverse_graph.setdefault(int(parse.index), [])
+                # Find root node
                 if int(parse.governor) == 0:
                     rootNode = int(parse.index)
-                
-                dependencies.setdefault(int(parse.governor),{})
-                dependencies.setdefault(int(parse.index),{})
-                dependencies[int(parse.governor)].setdefault(parse.dependency_relation,[])
-                dependencies[int(parse.governor)][parse.dependency_relation].append(parse)
-                
-            arr = bfs(reverse_graph,rootNode)
+
+                dependencies.setdefault(int(parse.governor), {})
+                dependencies.setdefault(int(parse.index), {})
+                dependencies[int(parse.governor)].setdefault(
+                    parse.dependency_relation, [])
+                dependencies[int(parse.governor)
+                             ][parse.dependency_relation].append(parse)
+
+            arr = bfs(reverse_graph, rootNode)
             parses = [sentence.words[y-1] for y in arr if y != 0]
             n = 0
-            while(n<len(parses)):
+            while(n < len(parses)):
                 parse = parses[n]
                 idx = int(parse.index)
                 if 'VB' in parse.xpos:
-                    #Get immediate descendants of verb
+                    # Get immediate descendants of verb
                     dependents = reverse_graph[idx]
                     dependents.append(idx)
-                    Verb_Phrases.append(' '.join([sent[x].text for x in range(len(sent)) if int(sent[x].index) in dependents]))
+                    Verb_Phrases.append(' '.join([sent[x].text for x in range(
+                        len(sent)) if int(sent[x].index) in dependents]))
                     main_verb.append(parse.text)
                 n += 1
-        VP_data.append(list(zip(Verb_Phrases,main_verb)))
-        
-        if i%500 == 0 and VP_data:
+        VP_data.append(list(zip(Verb_Phrases, main_verb)))
+
+        if i % 500 == 0 and VP_data:
             print(i)
             print(VP_data[-1])
     return VP_data
 
-#Function to separate out VPs and their respective annotated tasks
-def get_tasks_for_VP(VP_data,data):
+
+def get_tasks_for_VP(VP_data, data):
+    # Function to separate out VPs and their respective annotated tasks
     tasks = [[0 for x in range(len(VP_data[i]))] for i in range(len(VP_data))]
     for i in range(len(VP_data)):
         if pd.isnull(data.iloc[i]['Verbs']):
             pass
         else:
-            labels = data.iloc[i]['Task/Goal'].replace('[','').replace(']','').replace("'","")
+            labels = data.iloc[i]['Task/Goal'].replace(
+                '[', '').replace(']', '').replace("'", "")
             label = [x.strip() for x in labels.split(',')]
-            #Only fetch words that are labeled as Task
+            # Only fetch words that are labeled as Task
             valid_labels = [x for x in range(len(label)) if label[x] == 'Task']
 
-            verbs = data.iloc[i]['Verbs'].replace('[','').replace(']','').replace("'","").split(',')
+            verbs = data.iloc[i]['Verbs'].replace(
+                '[', '').replace(']', '').replace("'", "").split(',')
             verbs = [verbs[x].strip().lower() for x in valid_labels]
-            visited = dict([(x,False) for x in range(len(VP_data[i]))])
+            visited = dict([(x, False) for x in range(len(VP_data[i]))])
             for x in range(len(verbs)):
                 for y in range(len(VP_data[i])):
                     VP = VP_data[i][y]
@@ -138,83 +137,58 @@ def get_tasks_for_VP(VP_data,data):
         new_VP.extend([x[0] for x in VP_data[i]])
         context.extend([i for x in VP_data[i]])
 
-    return tasks,new_VP,context
+    return tasks, new_VP, context
 
-#Function to call extact VP if VP files not present
-def processData(data,dataset='email'):
-    if os.path.exists('Data/PickleFiles/VP_data_'+dataset+'.pickle'):
+
+def processData(data, dataset='email',shuffle=True):
+    # Function to call extact VP if VP files not present
+    if not os.path.exists('Data/PickleFiles/VP_data_'+dataset+'.pickle'):
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore", category=PendingDeprecationWarning)
             warnings.filterwarnings("ignore", category=DeprecationWarning)
             warnings.filterwarnings("ignore", category=UserWarning)
-            VP_data = extract_VP(data)
+            VP_df = extract_VP(data)
 
-        tasks, VP_data, context = get_tasks_for_VP(VP_data, data)
+        tasks, VP_data, context = get_tasks_for_VP(VP_df, data)
         with open('Data/PickleFiles/tasks_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(tasks, f)
 
-        with open('VP_data_'+dataset+'.pickle', 'wb') as f:
+        with open('Data/PickleFiles/VP_data_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(VP_data, f)
 
-        with open('context_'+dataset+'.pickle', 'wb') as f:
+        with open('Data/PickleFiles/VP_df_'+dataset+'.pickle', 'wb') as f:
+            pickle.dump(VP_df, f)
+
+        with open('Data/PickleFiles/context_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(context, f)
     else:
         with open('Data/PickleFiles/tasks_'+dataset+'.pickle', 'rb') as f:
             tasks = pickle.load(f)
 
-        with open('VP_data_'+dataset+'.pickle', 'rb') as f:
+        with open('Data/PickleFiles/VP_data_'+dataset+'.pickle', 'rb') as f:
             VP_data = pickle.load(f)
 
-        with open('context_'+dataset+'.pickle', 'rb') as f:
+        with open('Data/PickleFiles/VP_df_'+dataset+'.pickle', 'rb') as f:
+            VP_df = pickle.load(f)
+
+        with open('Data/PickleFiles/context_'+dataset+'.pickle', 'rb') as f:
             context = pickle.load(f)
 
-    shuffled_idx = [x for x in range(len(VP_data))]
-    random.shuffle(shuffled_idx)
-
-    VP_data = [VP_data[x] for x in shuffled_idx]
-    tasks = [tasks[x] for x in shuffled_idx]
-    context = [str(data.iloc[context[x]]['Sentence'])
+    if shuffle:
+        shuffled_idx = [x for x in range(len(VP_data))]
+        random.shuffle(shuffled_idx)
+        VP_data = [VP_data[x] for x in shuffled_idx]
+        tasks = [tasks[x] for x in shuffled_idx]
+        context = [str(data.iloc[context[x]]['Sentence'])
                 for x in shuffled_idx]
-    return VP_data, tasks, context
+    else:
+        context = [str(data.iloc[context[x]]['Sentence'])
+                for x in range(len(context))]
+    return VP_data, VP_df, tasks, context
+
 
 def create_split(train_idx, test_idx, data):
     train_data = [data[x] for x in train_idx]
     test_data = [data[x] for x in test_idx]
     return train_data, test_data
-
-if __name__=='__main__':
-    dataset = sys.argv[1]
-    data_path = '../Datasets/'
-    #Read selected dataset
-    if dataset.lower() == 'email':
-        data = pd.read_excel(data_path+'Dataset_Emails.xlsx')
-    elif dataset.lower() == 'chat':
-        data = pd.read_excel(data_path+'Dataset_Chat.xlsx')
-    else:
-        print('Incorrect dataset name, please enter "email" or "chat"')
-        sys.exit()
-
-    data = preprocess(data,data_path)
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        warnings.filterwarnings("ignore", category=UserWarning)
-        VP_data = extract_VP(data)
-
-    tasks,new_VP,context = get_tasks_for_VP(VP_data,data)
-
-    #Save VPs and preprocessed dataset
-    with open(data_path+dataset+'_all_tasks.pickle','wb') as f:
-        pickle.dump(tasks,f)
-        
-    with open(data_path+dataset+'_all_VP.pickle','wb') as f:
-        pickle.dump(new_VP,f)
-
-    with open(data_path+dataset+'_all_VP_df.pickle','wb') as f:
-        pickle.dump(VP_data,f)
-        
-    with open(data_path+dataset+'_all_context.pickle','wb') as f:
-        pickle.dump(context,f)
-
-    data.to_excel(data_path+dataset+'_preprocessed_dataset.xlsx',index=False)

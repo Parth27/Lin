@@ -11,16 +11,15 @@ from Code.DataProcessing import create_split, processData
 
 
 class SVMTrainer:
-    def __init__(self, dataset='email'):
-        self.dataset = dataset
-        self.data = pd.read_excel(
-            'Data/Preprocessed_Dataset_'+self.dataset+'.xlsx')
+    def __init__(self):
         module_url = "https://tfhub.dev/google/nnlm-en-dim128/2"
         with tf.device('/cpu:0'):
             self.embed = hub.KerasLayer(module_url)
 
-    def __call__(self):
-        VP_data, tasks, context = processData(self.data, self.dataset)
+    def __call__(self,dataset='email'):
+        data = pd.read_excel(
+            'Data/Preprocessed_Dataset_'+dataset+'.xlsx')
+        VP_data, VP_df, tasks, context = processData(data, dataset)
         # K-fold cross validation
         kf = KFold(n_splits=5, shuffle=False)
         print('Started Training...')

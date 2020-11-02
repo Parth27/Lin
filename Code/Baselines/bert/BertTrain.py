@@ -12,22 +12,18 @@ from sklearn.model_selection import KFold
 from transformers import BertConfig, BertModel, BertTokenizer
 
 from Code.Baselines.bert.Bert import BertBaseline
-from Code.Baselines.bert.Bert_Preprocessing import prepare_data
 from Code.DataProcessing import processData,create_split
 
 
 class BertTrainer:
-    def __init__(self,dataset='email'):
-        self.dataset = dataset
+    def __init__(self):
         if torch.cuda.is_available():
-            # Tell PyTorch to use the GPU.
+            # Use GPU if available
             self.device = torch.device("cuda")
-            print('There are %d GPU(s) available.' % torch.cuda.device_count())
-            print('We will use the GPU:', torch.cuda.get_device_name(0))
-        # If not...
         else:
-            print('No GPU available, using the CPU instead.')
             self.device = torch.device("cpu")
+        self.tokenizer = BertTokenizer.from_pretrained(
+            'bert-base-uncased', do_lower_case=True)
 
     def format_time(self, elapsed):
         elapsed_rounded = int(round((elapsed)))
@@ -35,9 +31,47 @@ class BertTrainer:
         # Format as hh:mm:ss
         return str(datetime.timedelta(seconds=elapsed_rounded))
 
-    def __call__(self, num_epochs=20, batch_size=64, lr=0.00001, cross_val=True):
-        self.loadDataset()
-        VP_data, tasks, context = processData(self.data,self.dataset)
+    def prepare_data(self,X_train,X_test,max_seq_length=None):
+        X_tokens = []
+        for i in range(len(X_train)):
+            currTokens = self.tokenizer.encode(X_train[i],add_special_tokens=True)
+            if max_seq_length and len(currTokens) > max_seq_length:
+                currTokens = currTokens[:max_seq_length-1]+self.tokenizer.encode(['SEP'],add_special_tokens=False)
+            X_tokens.append(currTokens)
+
+        X_masks = list(map(lambda tok: [1]*len(tok), X_tokens))
+
+        if not max_seq_length:
+            max_seq_length = max([len(x) for x in X_tokens])
+
+        X_token_ids = map(lambda tids: tids + [0] * (max_seq_length - len(tids)), X_tokens)
+        X_masks = map(lambda masks: masks + [0] * (max_seq_length - len(masks)), X_masks)
+        X_segments = map(lambda tokens: [0]*max_seq_length, X_tokens)
+
+        X_token_ids = np.array(list(X_token_ids))
+        X_masks = np.array(list(X_masks))
+        X_segments = np.array(list(X_segments))
+
+        test_X_tokens = []
+        for i in range(len(X_test)):
+            currTokens = self.tokenizer.encode(X_test[i],add_special_tokens=True)
+            if max_seq_length and len(currTokens) > max_seq_length:
+                currTokens = currTokens[:max_seq_length-1]+self.tokenizer.encode(['SEP'],add_special_tokens=False)
+            test_X_tokens.append(currTokens)
+
+        test_X_masks = list(map(lambda tok: [1]*len(tok), test_X_tokens))
+        test_X_token_ids = map(lambda tids: tids + [0] * (max_seq_length - len(tids)), test_X_tokens)
+        test_X_masks = map(lambda masks: masks + [0] * (max_seq_length - len(masks)), test_X_masks)
+        test_X_segments = map(lambda tokens: [0]*max_seq_length, test_X_tokens)
+
+        test_X_token_ids = np.array(list(test_X_token_ids))
+        test_X_masks = np.array(list(test_X_masks))
+        test_X_segments = np.array(list(test_X_segments))
+        return X_token_ids,X_masks,X_segments,test_X_token_ids,test_X_masks,test_X_segments
+
+    def __call__(self, dataset='email', num_epochs=20, batch_size=64, lr=0.00001, cross_val=True):
+        data = pd.read_excel('Data/Preprocessed_Dataset_'+dataset+'.xlsx')
+        VP_data, VP_df, tasks, context = processData(data,dataset)
         kf = KFold(n_splits=5, shuffle=False)
         print('Started Training...')
         f1_scores = []
@@ -54,10 +88,10 @@ class BertTrainer:
                 train_idx, test_idx, context)
             train_tasks, test_tasks = create_split(
                 train_idx, test_idx, tasks)
-            X_train_ids, X_train_masks, X_train_segments, X_test_ids, X_test_masks, X_test_segments = prepare_data(
+            X_train_ids, X_train_masks, X_train_segments, X_test_ids, X_test_masks, X_test_segments = self.prepare_data(
                 train_VP, test_VP, max_seq_length=50)
 
-            train_sent_ids, train_sent_masks, train_sent_segments, test_sent_ids, test_sent_masks, test_sent_segments = prepare_data(
+            train_sent_ids, train_sent_masks, train_sent_segments, test_sent_ids, test_sent_masks, test_sent_segments = self.prepare_data(
                 train_context, test_context, max_seq_length=150)
             class_weights = torch.tensor(np.array([1, len([x for x in train_tasks if x == 0])/len(
                 [x for x in train_tasks if x == 1])])).float().to(self.device)
@@ -142,10 +176,6 @@ class BertTrainer:
             fold_num += 1
         return best_model, f1_scores, accuracies, precisions, recalls
 
-    def loadDataset(self):
-        self.data = pd.read_excel('Data/Preprocessed_Dataset_'+self.dataset+'.xlsx')
-        self.tokenizer = BertTokenizer.from_pretrained(
-            'bert-base-uncased', do_lower_case=True)
 
     def evaluate(self, X_test_ids, X_test_masks, test_sent_ids, test_sent_masks, test_tasks, y_test, batch_size=64):
         print("Running Evaluation...")

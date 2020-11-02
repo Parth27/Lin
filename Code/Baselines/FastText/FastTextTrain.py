@@ -11,12 +11,9 @@ from Code.DataProcessing import create_split, processData
 
 
 class FasttextTrainer:
-    def __init__(self, dataset='email'):
-        self.dataset = dataset
-        self.data = pd.read_excel('Data/Preprocessed_Dataset_'+dataset+'.xlsx')
-
-    def __call__(self,num_epochs = 25,lr = 1.0):
-        VP_data, tasks, context = processData(self.data, self.dataset)
+    def __call__(self,dataset='email',num_epochs = 25,lr = 1.0):
+        data = pd.read_excel('Data/Preprocessed_Dataset_'+dataset+'.xlsx')
+        VP_data, VP_df, tasks, context = processData(data, dataset)
 
         # 5-fold cross validation
         kf = KFold(n_splits=5, shuffle=False)
