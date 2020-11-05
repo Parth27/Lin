@@ -93,8 +93,8 @@ class BertTrainer:
 
             train_sent_ids, train_sent_masks, train_sent_segments, test_sent_ids, test_sent_masks, test_sent_segments = self.prepare_data(
                 train_context, test_context, max_seq_length=150)
-            class_weights = torch.tensor(np.array([1, len([x for x in train_tasks if x == 0])/len(
-                [x for x in train_tasks if x == 1])])).float().to(self.device)
+            class_weight = torch.FloatTensor(len([x for x in train_tasks if x == 0])/len(
+                [x for x in train_tasks if x == 1])).to(self.device)
 
             X_train_ids = torch.tensor(X_train_ids)
             X_train_masks = torch.tensor(X_train_masks)
@@ -109,8 +109,9 @@ class BertTrainer:
             test_sent_masks = torch.tensor(test_sent_masks)
 
             self.model = BertBaseline()
+            self.model.to(self.device)
             optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
-            loss_func = torch.nn.CrossEntropyLoss(weight=class_weights)
+            loss_func = torch.nn.BCEWithLogitsLoss(pos_weight=class_weight)
 
             loss_values = []
             for epoch_i in range(num_epochs):
@@ -118,16 +119,11 @@ class BertTrainer:
                 print(
                     '======== Epoch {:} / {:} ========'.format(epoch_i + 1, num_epochs))
                 print('Training...')
-                # Measure how long the training epoch takes.
                 t0 = time.time()
-                # Reset the total loss for this epoch.
                 total_loss = 0
                 self.model.train(True)
-                # For each batch of training data...
                 for step in range(math.ceil(X_train_ids.shape[0]/batch_size)):
-                    # Progress update every 40 batches.
                     if step % 20 == 0 and not step == 0:
-                        # Calculate elapsed time in minutes.
                         elapsed = format_time(time.time() - t0)
                         print('  Batch {:>5,}   Elapsed: {:}.'.format(
                             step, elapsed))
@@ -200,9 +196,10 @@ class BertTrainer:
                 outputs = self.model(input_sentence=b_sent_ids, sentence_mask=b_sent_masks,
                                      current_VP=b_input_ids, VP_mask=b_input_mask)
 
-            logits = outputs.detach().cpu().numpy()
+            logits = torch.nn.Sigmoid()(outputs)
+            logits = logits.detach().cpu().numpy()
             label_ids = b_labels.to('cpu').numpy()
-            all_predictions.extend([np.argmax(x) for x in logits])
+            all_predictions.extend([1 if x >= 0.5 else 0 for x in logits])
 
         prec, rec, f1, _ = precision_recall_fscore_support(
             test_tasks, all_predictions, average='binary')
