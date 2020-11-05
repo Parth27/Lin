@@ -14,7 +14,7 @@ from Code.DataProcessing import processData
 class lin:
     def __init__(self, themePredicates, agentPredicates, compSemantics):
         self.vn = nltk.corpus.util.LazyCorpusLoader(
-            'verbnet3.3', nltk.corpus.reader.verbnet.VerbnetCorpusReader, r'(?!\.).*\.xml')
+            'verbnet3', nltk.corpus.reader.verbnet.VerbnetCorpusReader, r'(?!\.).*\.xml')
         self.stemmer = SnowballStemmer("english", ignore_stopwords=True)
         self.parser = stanfordnlp.Pipeline(use_gpu=False)
         # Theme Predicates
