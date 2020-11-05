@@ -5,7 +5,7 @@ python:
 install:
   - pip install -r requirements.txt
   - python -c "import stanfordnlp; stanfordnlp.download('en', force=True)"
-  - python -c "import nltk; nltk.download('verbnet3')"
+  - python -c "import nltk; nltk.download('verbnet3'); nltk.download('stopwords')"
   
 script:
   - echo "skipping tests"
