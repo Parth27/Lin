@@ -7,6 +7,17 @@ Unsupervised task extraction from textual communication, presented at COLING 202
 ```bash
 pip install -r requirements.txt
 ```
+* Download stanfordnlp english library
+```python
+import stanfordnlp
+stanfordnlp.download('en')
+```
+* Download verbnet 3 and stopwords in nltk
+```python
+import nltk
+nltk.download('verbnet3')
+nltk.download('stopwords')
+```
 
 ## How to run Lin
 
