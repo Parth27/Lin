@@ -2,7 +2,7 @@
 Unsupervised task extraction from textual communication, presented at COLING 2020
 
 ## Lin Performance
-In our experiments, `Lin` outperforms strong baselines of `BERT`, `FastText` and `Universal Sentence Encoder + SVM`
+In our experiments, `Lin` outperforms strong baselines of `BERT`, `FastText` and `Universal Sentence Encoder + SVM` across multiple domains
 
 Results on email dataset
 | Model    | Accuracy | Precision | Recall | F1 score |
