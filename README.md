@@ -4,6 +4,25 @@ Unsupervised task extraction from textual communication, presented at COLING 202
 ## Lin Performance
 In our experiments, `Lin` outperforms strong baselines of `BERT`, `FastText` and `Universal Sentence Encoder + SVM`
 
+Results on email dataset
+| Model    | Accuracy | Precision | Recall | F1 score |
+| ---      | ---      | ---    | ---      | ---      |
+| SVM + USE| 89.35    | 54.40   | 82.42 | 65.51 |
+| FastText | 69.53    | 69.95   | 68.62 | 69.25 |
+| BERT | 89.17    | 74.82   | 82.85 | 78.58 |
+| Lin Syntax | 93.34    | 74.48   | 69.80 | 72.06 |
+| Lin Semantics | 91.08    | 58.62   | 93.36 | 72.01 |
+| **Lin** | **95.36**    | **83.82**   | **77.29** | **80.42** |
+
+Results on chat dataset (baselines trained on email dataset)
+| Model    | Accuracy | Precision | Recall | F1 score |
+| ---      | ---      | ---    | ---      | ---      |
+| SVM + USE| 83.42    | 70.09   | 72.11 | 71.09 |
+| FastText | 78.80    | 71.66   | 41.34 | 52.43 |
+| BERT | 92.68    | 85.32   | 89.42 | 87.32 |
+| Lin Syntax | 92.12    | 87.12   | 84.61 | 85.85 |
+| Lin Semantics | 89.40    | 74.07   | 96.15 | 83.68 |
+| **Lin** | **94.85**    | **94.73**   | **86.53** | **90.45** |
 ## Setup Instructions
 * Download and extract this repo
 * Install dependencies
