@@ -2,7 +2,7 @@
 Unsupervised task extraction from textual communication, presented at COLING 2020
 
 ## Lin Performance
-In our experiments, Lin outperforms strong baselines of `BERT`, `FastText` and `Universal Sentence Encoder + SVM`
+In our experiments, `Lin` outperforms strong baselines of `BERT`, `FastText` and `Universal Sentence Encoder + SVM`
 
 ## Setup Instructions
 * Download and extract this repo
@@ -36,7 +36,7 @@ On the provided dataset, the code will extract tasks, store them in the same exc
 python main.py --dataset=<path to your dataset>
 ```
 Please note that your dataset must be an **excel file** with a `Sentence` column that has the sentences from which tasks are to be extracted.
-Running Lin on custom dataset will also extract and store tasks the same way, but will not report accuracy, precision, recall and f1 score.
+Running `Lin` on custom dataset will also extract and store tasks the same way, but will not report accuracy, precision, recall and f1 score.
 
 ## Training baseline models
 ```bash
@@ -45,5 +45,9 @@ python train.py --model=<MODEL>
 `MODEL` can be either `bert`, `fasttext` or `svm`. The selected model is then trained on email dataset.
 Training is done using 5-fold cross validation and the model with best f1 score is stored in `Data/TrainedModels`.
 The average accuracy, precision, recall and f1 score are reported.
+Training models multiple times will overwrite previously trained model.
 
 ## Evaluating trained models
+```bash
+python evaluate.py --model=<MODEL>
+```
