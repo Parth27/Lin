@@ -49,5 +49,6 @@ Training models multiple times will overwrite previously trained model.
 
 ## Evaluating trained models
 ```bash
-python evaluate.py --model=<MODEL>
+python evaluate.py --model=<MODEL> --dataset=<DATASET>
 ```
+`DATASET` can be either `chat` or `email`. Metrics reported are accuracy, precision, recall and f1 score.
