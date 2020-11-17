@@ -138,7 +138,7 @@ def get_tasks_for_VP(VP_data, data):
 
 def processData(data, dataset='email',shuffle=True):
     # Function to call extact VP if VP files not present
-    if not os.path.exists('Data/PickleFiles/VP_data_'+dataset+'.pickle'):
+    if not os.path.exists('data/PickleFiles/VP_data_'+dataset+'.pickle'):
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore", category=PendingDeprecationWarning)
@@ -147,28 +147,28 @@ def processData(data, dataset='email',shuffle=True):
             VP_df = extract_VP(data)
 
         tasks, VP_data, context = get_tasks_for_VP(VP_df, data)
-        with open('Data/PickleFiles/tasks_'+dataset+'.pickle', 'wb') as f:
+        with open('data/PickleFiles/tasks_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(tasks, f)
 
-        with open('Data/PickleFiles/VP_data_'+dataset+'.pickle', 'wb') as f:
+        with open('data/PickleFiles/VP_data_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(VP_data, f)
 
-        with open('Data/PickleFiles/VP_df_'+dataset+'.pickle', 'wb') as f:
+        with open('data/PickleFiles/VP_df_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(VP_df, f)
 
-        with open('Data/PickleFiles/context_'+dataset+'.pickle', 'wb') as f:
+        with open('data/PickleFiles/context_'+dataset+'.pickle', 'wb') as f:
             pickle.dump(context, f)
     else:
-        with open('Data/PickleFiles/tasks_'+dataset+'.pickle', 'rb') as f:
+        with open('data/PickleFiles/tasks_'+dataset+'.pickle', 'rb') as f:
             tasks = pickle.load(f)
 
-        with open('Data/PickleFiles/VP_data_'+dataset+'.pickle', 'rb') as f:
+        with open('data/PickleFiles/VP_data_'+dataset+'.pickle', 'rb') as f:
             VP_data = pickle.load(f)
 
-        with open('Data/PickleFiles/VP_df_'+dataset+'.pickle', 'rb') as f:
+        with open('data/PickleFiles/VP_df_'+dataset+'.pickle', 'rb') as f:
             VP_df = pickle.load(f)
 
-        with open('Data/PickleFiles/context_'+dataset+'.pickle', 'rb') as f:
+        with open('data/PickleFiles/context_'+dataset+'.pickle', 'rb') as f:
             context = pickle.load(f)
 
     if shuffle:

@@ -7,7 +7,7 @@ from sklearn.metrics import (accuracy_score, f1_score,
 from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
-from Code.DataProcessing import create_split, processData
+from code.DataProcessing import create_split, processData
 
 
 class SVMTrainer:
@@ -18,7 +18,7 @@ class SVMTrainer:
 
     def __call__(self,dataset='email'):
         data = pd.read_excel(
-            'Data/Preprocessed_Dataset_'+dataset+'.xlsx')
+            'data/Preprocessed_Dataset_'+dataset+'.xlsx')
         VP_data, VP_df, tasks, context = processData(data, dataset)
         # K-fold cross validation
         kf = KFold(n_splits=5, shuffle=False)

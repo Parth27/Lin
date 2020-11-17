@@ -8,7 +8,7 @@ from sklearn.metrics import (accuracy_score, f1_score,
                              precision_recall_fscore_support)
 from sklearn.model_selection import KFold
 
-from Code.DataProcessing import processData
+from code.DataProcessing import processData
 
 
 class lin:

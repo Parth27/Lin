@@ -7,12 +7,12 @@ from sklearn.metrics import (accuracy_score, f1_score,
                              precision_recall_fscore_support)
 from sklearn.model_selection import KFold
 
-from Code.DataProcessing import create_split, processData
+from code.DataProcessing import create_split, processData
 
 
 class FasttextTrainer:
     def __call__(self,dataset='email',num_epochs = 25,lr = 1.0):
-        data = pd.read_excel('Data/Preprocessed_Dataset_'+dataset+'.xlsx')
+        data = pd.read_excel('data/Preprocessed_Dataset_'+dataset+'.xlsx')
         VP_data, VP_df, tasks, context = processData(data, dataset)
 
         # 5-fold cross validation
@@ -32,7 +32,7 @@ class FasttextTrainer:
             train_tasks, test_tasks = create_split(train_idx, test_idx, tasks)
 
             # Create training and testing data in format required by fasttext
-            with open('Data/fasttext.train', 'wt') as f:
+            with open('data/fasttext.train', 'wt') as f:
                 for i, VP in enumerate(train_VP[:-1]):
                     f.write(
                         '__label__'+str(train_tasks[i])+' '+VP.strip()+' '+data.iloc[train_context[i]]['Sentence'])
@@ -40,7 +40,7 @@ class FasttextTrainer:
                 f.write('__label__' +
                         str(train_tasks[-1])+' '+train_VP[-1].strip())
 
-            with open('Data/fasttext.test', 'wt') as f:
+            with open('data/fasttext.test', 'wt') as f:
                 for i, VP in enumerate(test_VP[:-1]):
                     f.write(
                         '__label__'+str(test_tasks[i])+' '+VP.strip()+' '+data.iloc[test_context[i]]['Sentence'])
@@ -50,7 +50,7 @@ class FasttextTrainer:
 
             # Train model
             model = fasttext.train_supervised(
-                input="Data/fasttext.train", epoch=num_epochs, lr=lr, loss='softmax', wordNgrams=2)
+                input="data/fasttext.train", epoch=num_epochs, lr=lr, loss='softmax', wordNgrams=2)
             # Get predictions
             predictions = []
             for i in range(len(test_VP)):
@@ -73,8 +73,8 @@ class FasttextTrainer:
             f1_scores.append(f1)
             accuracies.append(accuracy)
             fold_num += 1
-            os.remove('Data/fasttext.train')
-            os.remove('Data/fasttext.test')
+            os.remove('data/fasttext.train')
+            os.remove('data/fasttext.test')
             
         print('F1 scores: {}, average: {}'.format(f1_scores, sum(f1_scores)/5))
         print('Precisions: {}, average: {}'.format(

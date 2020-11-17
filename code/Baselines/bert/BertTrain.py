@@ -11,8 +11,8 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from sklearn.model_selection import KFold
 from transformers import BertConfig, BertModel, BertTokenizer
 
-from Code.Baselines.bert.Bert import BertBaseline
-from Code.DataProcessing import processData,create_split
+from code.Baselines.bert.Bert import BertBaseline
+from code.DataProcessing import processData,create_split
 
 
 class BertTrainer:
@@ -70,7 +70,7 @@ class BertTrainer:
         return X_token_ids,X_masks,X_segments,test_X_token_ids,test_X_masks,test_X_segments
 
     def __call__(self, dataset='email', num_epochs=20, batch_size=64, lr=0.00001, cross_val=True):
-        data = pd.read_excel('Data/Preprocessed_Dataset_'+dataset+'.xlsx')
+        data = pd.read_excel('data/Preprocessed_Dataset_'+dataset+'.xlsx')
         VP_data, VP_df, tasks, context = processData(data,dataset)
         kf = KFold(n_splits=5, shuffle=False)
         print('Started Training...')

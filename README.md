@@ -62,7 +62,7 @@ Running `Lin` on custom dataset will also extract and store tasks the same way, 
 python train.py --model=<MODEL>
 ```
 `MODEL` can be either `bert`, `fasttext` or `svm`. The selected model is then trained on email dataset.
-Training is done using 5-fold cross validation and the model with best f1 score is stored in `Data/TrainedModels`.
+Training is done using 5-fold cross validation and the model with best f1 score is stored in `data/TrainedModels`.
 The average accuracy, precision, recall and f1 score are reported.
 Training models multiple times will overwrite previously trained model.
 

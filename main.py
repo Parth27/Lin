@@ -16,8 +16,8 @@ from sklearn.metrics import (accuracy_score, f1_score,
                              precision_recall_fscore_support)
 from sklearn.model_selection import KFold
 
-from Code.DataProcessing import extract_VP, get_tasks_for_VP, preprocess
-from Code.Lin import lin
+from code.DataProcessing import extract_VP, get_tasks_for_VP, preprocess
+from code.Lin import lin
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('main', description='Run Lin')
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     compSemantics = rules['compSemantics']
 
     if args.dataset.lower() in ('email', 'chat'):
-        data = pd.read_excel('Data/Preprocessed_Dataset_' +
+        data = pd.read_excel('data/Preprocessed_Dataset_' +
                              args.dataset.lower()+'.xlsx')
     else:
         try:
