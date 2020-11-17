@@ -25,7 +25,7 @@ if __name__ == '__main__':
                         action='store', help='Choose the dataset')
     args = parser.parse_args()
 
-    with open('Config/Rules.json') as f:
+    with open('config/Rules.json') as f:
         rules = json.load(f)
     themePredicates = rules['themePredicates']
     agentPredicates = rules['agentPredicates']

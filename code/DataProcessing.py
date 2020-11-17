@@ -14,7 +14,7 @@ def preprocess(data):
     contractions = {}
     data['Sentence'] = data['Sentence'].astype(str)
     # List of contractions from Wikipedia
-    with open('Config/Contractions', 'r') as f:
+    with open('config/Contractions', 'r') as f:
         contractions = dict([x.split(':')
                              for x in f.read().strip().split('\n')])
 
