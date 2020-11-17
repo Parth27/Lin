@@ -97,10 +97,6 @@ def extract_VP(data):
                     main_verb.append(parse.text)
                 n += 1
         VP_data.append(list(zip(Verb_Phrases, main_verb)))
-
-        if i % 500 == 0 and VP_data:
-            print(i)
-            print(VP_data[-1])
     return VP_data
 
 
