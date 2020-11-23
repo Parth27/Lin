@@ -51,7 +51,13 @@ if __name__ == '__main__':
 
         predicted_tasks, predicted_verbs = model.extractTasks(data)
         print('Task extraction complete')
+        data['Lin Predictions'] = predicted_verbs
 
     if args.dataset.lower() in ('email', 'chat'):
         accuracy, precision, recall, f1 = model.evaluate(predicted_verbs, data)
         print(accuracy, precision, recall, f1)
+        print('Saving predictions...')
+        data.to_excel('data/Lin_predictions_'+args.dataset.lower()+'.xlsx',index=False)
+    else:
+        datasetName = args.dataset.lower().split('/')[-1].split('.')[0]
+        data.to_excel('data/Lin_predictions'+datasetName+'.xlsx',index=False)
