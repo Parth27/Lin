@@ -88,7 +88,7 @@ def extract_VP(data):
             while(n < len(parses)):
                 parse = parses[n]
                 idx = int(parse.index)
-                if parse.xpos in ('VB','VBG'):
+                if 'VB' in parse.xpos:
                     # Get immediate descendants of verb
                     dependents = reverse_graph[idx]
                     dependents.append(idx)

@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
         predicted_tasks, predicted_verbs = model.extractTasks(data)
         print('Task extraction complete')
-        data['Lin Predictions'] = predicted_verbs
+        data['Lin Predictions'] = list(predicted_verbs.values())
 
     if args.dataset.lower() in ('email', 'chat'):
         accuracy, precision, recall, f1 = model.evaluate(predicted_verbs, data)
