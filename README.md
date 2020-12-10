@@ -1,4 +1,4 @@
-# Lin: Unsupervised task extraction from textual communication
+# Lin: Unsupervised extraction of tasks from textual communication
 This is the code for the paper presented at COLING 2020. You can find the paper [here](https://www.aclweb.org/anthology/2020.coling-main.164.pdf).
 
 ## Lin Performance
