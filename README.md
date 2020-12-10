@@ -1,5 +1,5 @@
 # Lin: Unsupervised task extraction from textual communication
-Unsupervised task extraction from textual communication, presented at COLING 2020
+This is the code for the paper presented at COLING 2020. You can find the paper [here](https://www.aclweb.org/anthology/2020.coling-main.164.pdf).
 
 ## Lin Performance
 In our experiments, `Lin` outperforms strong baselines of `BERT`, `FastText` and `Universal Sentence Encoder + SVM` across multiple domains
@@ -71,3 +71,23 @@ Training models multiple times will overwrite previously trained model.
 python evaluate.py --model=<MODEL> --dataset=<DATASET>
 ```
 `DATASET` can be either `chat` or `email`. Metrics reported are accuracy, precision, recall and f1 score.
+
+## Citation
+If you use `Lin` in your paper, please cite us:
+```bash
+@inproceedings{diwanji-etal-2020-lin,
+    title = "Lin: Unsupervised Extraction of Tasks from Textual Communication",
+    author = "Diwanji, Parth  and
+      Guo, Hui  and
+      Singh, Munindar  and
+      Kalia, Anup",
+    booktitle = "Proceedings of the 28th International Conference on Computational Linguistics",
+    month = dec,
+    year = "2020",
+    address = "Barcelona, Spain (Online)",
+    publisher = "International Committee on Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.coling-main.164",
+    pages = "1815--1819",
+    abstract = "Commitments and requests are a hallmark of collaborative communication, especially in team settings. Identifying specific tasks being committed to or request from emails and chat messages can enable important downstream tasks, such as producing todo lists, reminders, and calendar entries. State-of-the-art approaches for task identification rely on large annotated datasets, which are not always available, especially for domain-specific tasks. Accordingly, we propose Lin, an unsupervised approach of identifying tasks that leverages dependency parsing and VerbNet. Our evaluations show that Lin yields comparable or more accurate results than supervised models on domains with large training sets, and maintains its excellent performance on unseen domains.",
+}
+```
