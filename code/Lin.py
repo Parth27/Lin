@@ -23,6 +23,17 @@ class lin:
         self.agentPredicates = agentPredicates
         # Semantics to check before going directly to the clausal complement of a verb
         self.compSemantics = compSemantics
+        self.task_classes = set()
+        self.agent_classes = set()
+        self.comp_classes = set()
+        for classid in self.vn.classids():
+            valid_task, found, agent_flag = self.parse_frames(classid)
+            if valid_task:
+                self.task_classes.add(classid)
+            if agent_flag:
+                self.agent_classes.add(classid)
+            if self.parse_for_comp(classid):
+                self.comp_classes.add(classid)
 
     def dfs(self, graph, node, arr, modify_dependencies=False, nsubj='', dependencies={}):
         if modify_dependencies:
@@ -73,7 +84,7 @@ class lin:
         subj_check = any(x in subj for x in valid_subjects)
         return subj_check
 
-    def parse_frames(self, classid, found):
+    def parse_frames(self, classid, found = False):
         valid_task = False
         agent_flag = False
         try:
@@ -99,57 +110,49 @@ class lin:
         return valid_task, found, agent_flag
 
     def parse_action(self, lemma):
-        flag = -1
         found_frames = False
         valid_task = False
         agent_flag = False
 
         if not self.vn.classids(lemma=lemma):
-            flag = 0
             lemma = self.stemmer.stem(lemma)
             if not self.vn.classids(lemma=lemma):
-                return True, flag, True
+                return True, True
 
-        for vn_class in self.vn.classids(lemma):
-            valid_task, found_frames, agent_flag = self.parse_frames(
-                vn_class, found_frames)
-            flag = 1
-            if valid_task and found_frames:
-                return valid_task, flag, agent_flag
+        vn_classes = set(self.vn.classids(lemma))
+        valid_task = True if (vn_classes & self.task_classes) else False
+        agent_flag = True if (vn_classes & self.agent_classes) else False
+        return valid_task, agent_flag
 
-        return valid_task, flag, agent_flag
-
-    def parse_for_comp(self, classid, found):
+    def parse_for_comp(self, classid, found = False):
         comp_check = False
         try:
             for frame in self.vn.frames(classid):
-                found = True
                 for s in frame['semantics']:
                     for arg in s['arguments']:
                         if arg['type'] == 'Event':
                             if s['predicate_value'] in self.compSemantics:
                                 comp_check = True
-                                return comp_check, found
+                                return comp_check
         except:
             pass
-        return comp_check, found
+        return comp_check
 
     def check_comp(self, parent_lemma, child_lemma):
-        parent_task = False
-        child_task = False
-        found = False
+        # found = False
         comp_check = False
-
         if not self.vn.classids(lemma=parent_lemma):
             parent_lemma = self.stemmer.stem(parent_lemma)
 
-        for classid in self.vn.classids(parent_lemma):
-            comp_check, found = self.parse_for_comp(classid, found)
-            if found and comp_check:
-                break
+        vn_class = set(self.vn.classids(parent_lemma))
+        comp_check = True if (vn_class & self.comp_classes) else False
+        # for classid in self.vn.classids(parent_lemma):
+        #     comp_check, found = self.parse_for_comp(classid, found)
+        #     if found and comp_check:
+        #         break
 
         if comp_check:
-            valid_task, _, _ = self.parse_action(child_lemma)
+            valid_task, _ = self.parse_action(child_lemma)
             if valid_task:
                 return True
 
@@ -305,7 +308,7 @@ class lin:
                                 continue
 
                         # Check if task is valid or not
-                        valid_task, info, agent_flag = self.parse_action(
+                        valid_task, agent_flag = self.parse_action(
                             parse.text)
 
                         # Fetch verb object
