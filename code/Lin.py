@@ -16,6 +16,7 @@ class lin:
         self.vn = nltk.corpus.util.LazyCorpusLoader(
             'verbnet3', nltk.corpus.reader.verbnet.VerbnetCorpusReader, r'(?!\.).*\.xml')
         self.stemmer = SnowballStemmer("english", ignore_stopwords=True)
+        # Change use_gpu to True if good GPU is available
         self.parser = stanfordnlp.Pipeline(use_gpu=False)
         # Theme Predicates
         self.themePredicates = themePredicates
