@@ -73,9 +73,8 @@ class lin:
             clausal_comp += [int(x.index)
                              for x in dependencies[idx].get('ccomp', []) if 'VB' in x.xpos]
             arr = [x for x in arr if x not in clausal_comp]
-
+            
         skip_words.extend(arr)
-
         return skip_words
 
     def check_subject(self, dependencies, idx):
@@ -105,7 +104,6 @@ class lin:
                             if s['predicate_value'] in self.themePredicates:
                                 valid_task = True
                                 return valid_task, found, True
-
         except:
             pass
         return valid_task, found, agent_flag
@@ -140,18 +138,12 @@ class lin:
         return comp_check
 
     def check_comp(self, parent_lemma, child_lemma):
-        # found = False
         comp_check = False
         if not self.vn.classids(lemma=parent_lemma):
             parent_lemma = self.stemmer.stem(parent_lemma)
 
-        vn_class = set(self.vn.classids(parent_lemma))
-        comp_check = True if (vn_class & self.comp_classes) else False
-        # for classid in self.vn.classids(parent_lemma):
-        #     comp_check, found = self.parse_for_comp(classid, found)
-        #     if found and comp_check:
-        #         break
-
+        vn_classes = set(self.vn.classids(parent_lemma))
+        comp_check = True if (vn_classes & self.comp_classes) else False
         if comp_check:
             valid_task, _ = self.parse_action(child_lemma)
             if valid_task:
@@ -300,7 +292,7 @@ class lin:
 
                         if clausal_comp:
                             comp_flag = self.check_comp(
-                                parse.text, clausal_comp[0].text)
+                                parse.text.lower(), clausal_comp[0].text.lower())
 
                             if comp_flag:
                                 skip_words = self.skip_descendants(
@@ -310,7 +302,7 @@ class lin:
 
                         # Check if task is valid or not
                         valid_task, agent_flag = self.parse_action(
-                            parse.text)
+                            parse.text.lower())
 
                         # Fetch verb object
                         obj = dependencies[int(parse.index)].get('obj', None)
