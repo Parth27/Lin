@@ -60,4 +60,4 @@ if __name__ == '__main__':
         data.to_excel('data/Lin_predictions_'+args.dataset.lower()+'.xlsx',index=False)
     else:
         datasetName = args.dataset.lower().split('/')[-1].split('.')[0]
-        data.to_excel('data/Lin_predictions'+datasetName+'.xlsx',index=False)
+        data.to_excel('data/Lin_predictions_'+datasetName+'.xlsx',index=False)
