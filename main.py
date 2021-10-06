@@ -42,7 +42,7 @@ if __name__ == '__main__':
             elif str(args.dataset).split(".")[-1] == "csv":
                 data = pd.read_csv(args.dataset)
             else:
-                data = pd.read_csv(args.dataset)
+                data = pd.read_excel(args.dataset)
         except Exception as e:
             #Catch and print the exception for better debugging
             print(e)
